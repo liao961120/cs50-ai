@@ -54,7 +54,7 @@ def result(board, action):
     """
     result = deepcopy(board)
 
-    if result[action[0]][action[1]] is not EMPTY:
+    if board[action[0]][action[1]] is not EMPTY:
         raise Exception("Invalid Action: cell not empty!")
 
     if player(board) == X:
@@ -106,18 +106,99 @@ def terminal(board):
     """
     Returns True if game is over, False otherwise.
     """
-    raise NotImplementedError
+    # Someone wins
+    if winner(board) is not None:
+        return True
+    
+    # All cells filled
+    count = 0
+    for lst in board:
+        for cell in lst:
+            if cell is not None:
+                count += 1
+    if count == 9:
+        return True
 
+    return False
 
 def utility(board):
     """
     Returns 1 if X has won the game, -1 if O has won, 0 otherwise.
     """
-    raise NotImplementedError
+    status = winner(board)
+    if status == X:
+        return 1
+    elif status == O:
+        return -1
+    else:
+        return 0
 
 
 def minimax(board):
     """
     Returns the optimal action for the current player on the board.
     """
-    raise NotImplementedError
+    if terminal(board):
+        return None
+    
+    def maxValue(board):
+        if terminal(board):
+            return utility(board), None
+        values = []
+        for action in actions(board):
+            values.append(
+                (minValue(result(board, action))[0], action)
+                )
+        return max(values)
+
+    def minValue(board):
+        if terminal(board):
+            return utility(board), None
+        values = []
+        for action in actions(board):
+            values.append(
+                (maxValue(result(board, action))[0], action)
+                ) 
+        return min(values)
+    
+    if player(board) == X:
+        return maxValue(board)[1]
+    elif player(board) == O:
+        return minValue(board)[1]
+    else:
+        raise Exception("Bug")
+
+
+def alphabeta(board):
+    """
+    Returns the optimal action for the current player on the board.
+    """
+
+    def alphaBeta(board, alpha, beta, isMaximizing):
+        if terminal(board):
+            return utility(board), None
+
+        if isMaximizing:
+            value = -math.inf
+            for action in actions(board):
+                value = max(value, alphaBeta(result(board, action), alpha, beta, isMaximizing=False)[0])
+                alpha = max(alpha, value)
+                if alpha >= beta:
+                    break
+            return value, action
+        
+        else:
+            value = math.inf
+            for action in actions(board):
+                value = min(value, alphaBeta(result(board, action), alpha, beta, isMaximizing=True)[0])
+                beta = min(beta, value)
+                if alpha >= beta:
+                    break
+            return value, action
+
+    isMaximizing = True if player(board) == X else False
+    return alphaBeta(board, alpha=-math.inf, beta=math.inf, isMaximizing=isMaximizing)[1]
+
+
+    
+
