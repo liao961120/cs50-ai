@@ -134,7 +134,7 @@ def utility(board):
         return 0
 
 
-def minimax(board):
+def minimax1(board):
     """
     Returns the optimal action for the current player on the board.
     """
@@ -144,22 +144,28 @@ def minimax(board):
     def maxValue(board):
         if terminal(board):
             return utility(board), None
-        values = []
+        
+        value = -math.inf
+        best = None
         for action in actions(board):
-            values.append(
-                (minValue(result(board, action))[0], action)
-                )
-        return max(values)
+            minval = minValue(result(board, action))[0]
+            if minval > value:
+                value = minval
+                best = action
+        return value, best
 
     def minValue(board):
         if terminal(board):
             return utility(board), None
-        values = []
+        
+        value = math.inf
+        best = None
         for action in actions(board):
-            values.append(
-                (maxValue(result(board, action))[0], action)
-                ) 
-        return min(values)
+            maxval = maxValue(result(board, action))[0]
+            if maxval < value:
+                value = maxval
+                best = action
+        return value, best
     
     if player(board) == X:
         return maxValue(board)[1]
@@ -169,36 +175,44 @@ def minimax(board):
         raise Exception("Bug")
 
 
-def alphabeta(board):
+def minimax(board):
     """
     Returns the optimal action for the current player on the board.
+    alpha-beta pruning
     """
 
-    def alphaBeta(board, alpha, beta, isMaximizing):
+    def maxValue(board, alpha, beta):
         if terminal(board):
             return utility(board), None
 
-        if isMaximizing:
-            value = -math.inf
-            for action in actions(board):
-                value = max(value, alphaBeta(result(board, action), alpha, beta, isMaximizing=False)[0])
-                alpha = max(alpha, value)
-                if alpha >= beta:
-                    break
-            return value, action
-        
-        else:
-            value = math.inf
-            for action in actions(board):
-                value = min(value, alphaBeta(result(board, action), alpha, beta, isMaximizing=True)[0])
-                beta = min(beta, value)
-                if alpha >= beta:
-                    break
-            return value, action
+        value = -math.inf
+        best = None
+        for action in actions(board):
+            minval = minValue(result(board, action), alpha, beta)[0]
+            alpha = max(alpha, minval)
+            if minval > value:
+                value = minval
+                best = action
+            if alpha >= beta:
+                break
+        return value, best
 
-    isMaximizing = True if player(board) == X else False
-    return alphaBeta(board, alpha=-math.inf, beta=math.inf, isMaximizing=isMaximizing)[1]
+    def minValue(board, alpha, beta):
+        if terminal(board):
+            return utility(board), None
 
+        value = math.inf
+        for action in actions(board):
+            maxval = maxValue(result(board, action), alpha, beta)[0]
+            beta = min(beta, maxval)
+            if maxval < value:
+                value = maxval
+                best = action
+            if alpha >= beta:
+                break
+        return value, best
 
-    
-
+    if player(board) == X:
+        return maxValue(board, -math.inf, math.inf)[1]
+    else:
+        return minValue(board, -math.inf, math.inf)[1]
