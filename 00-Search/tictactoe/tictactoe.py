@@ -178,7 +178,7 @@ def minimax1(board):
 def minimax(board):
     """
     Returns the optimal action for the current player on the board.
-    alpha-beta pruning
+    use alpha-beta pruning
     """
 
     def maxValue(board, alpha, beta):
